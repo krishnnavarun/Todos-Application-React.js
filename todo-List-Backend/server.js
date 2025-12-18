@@ -15,7 +15,9 @@ connectDB();
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const todoRoutes = require('./routes/todoRoutes');
 app.use('/api/auth', authRoutes);
+app.use('/api/todos', todoRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

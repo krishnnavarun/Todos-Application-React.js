@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 
+const API_URL = 'http://localhost:3000';
+
 const RegisterForm = ({ onToggleForm }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -29,22 +31,26 @@ const RegisterForm = ({ onToggleForm }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/register', {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    password: passwordRef.current.value
-                })
+                    email: email.trim(),
+                    password: passwordRef.current.value,
+                    name: name.trim(),
+                }),
             });
+
+            if (!response.ok) {
+                throw new Error('Registration failed');
+            }
 
             const data = await response.json();
             console.log('Register Response:', data);
 
-            if (response.ok) {
+            if (data.token) {
                 setSuccess('Registration successful! Redirecting to login...');
                 // Clear form
                 setName('');
@@ -56,13 +62,11 @@ const RegisterForm = ({ onToggleForm }) => {
                     onToggleForm();
                 }, 1000);
             } else {
-                const errorMsg = data.error || 'Registration failed';
-                setError(errorMsg);
-                console.error('Register error:', errorMsg);
+                setError('Registration failed');
             }
         } catch (error) {
             console.error('Register error:', error);
-            const errorMsg = 'Error registering. Please make sure your backend is running on localhost:5000';
+            const errorMsg = error.message || 'Error registering. Please make sure your backend is running on localhost:3000';
             setError(errorMsg);
         } finally {
             setLoading(false);

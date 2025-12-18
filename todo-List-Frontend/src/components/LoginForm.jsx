@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import RegisterForm from "./RegisterForm";
 
+const API_URL = 'http://localhost:3000';
+
 const LoginForm = ({ onLoginSuccess }) => {
     const [email, setEmail] = useState('');
     const passwordRef = useRef('');
@@ -26,21 +28,25 @@ const LoginForm = ({ onLoginSuccess }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     email: email.trim(),
-                    password: passwordRef.current.value
-                })
+                    password: passwordRef.current.value,
+                }),
             });
+
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
 
             const data = await response.json();
             console.log('Login Response:', data);
 
-            if (response.ok && data.token) {
+            if (data.token) {
                 // Save token to localStorage
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
@@ -57,13 +63,11 @@ const LoginForm = ({ onLoginSuccess }) => {
                     onLoginSuccess();
                 }, 500);
             } else {
-                const errorMsg = data.error || 'Login failed';
-                setError(errorMsg);
-                console.error('Login error:', errorMsg);
+                setError('Login failed');
             }
         } catch (error) {
             console.error('Login error:', error);
-            const errorMsg = 'Error logging in. Please make sure your backend is running on localhost:5000';
+            const errorMsg = error.message || 'Error logging in. Please make sure your backend is running on localhost:3000';
             setError(errorMsg);
         } finally {
             setLoading(false);
