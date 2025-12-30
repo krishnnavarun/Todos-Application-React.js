@@ -3,11 +3,13 @@ import { Trash2, LogOut, AlertCircle, RefreshCw, CheckCircle2, Circle } from 'lu
 
 // For local development: http://localhost:3000
 // For production: Update to your deployed backend URL
+
 const API_URL = 'http://localhost:3000';
 
 const Todos = ({ onLogout }) => {
   const [todoList, setTodoList] = useState([]);
   const [userInput, setUserInput] = useState('');
+  const [descriptionInput, setDescriptionInput] = useState('');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,7 +62,7 @@ const Todos = ({ onLogout }) => {
   };
 
   const onAddTodo = async () => {
-    if (userInput.trim().length === 0) {
+    if (userInput.length === 0) {
       setError('Please enter a task');
       return;
     }
@@ -75,12 +77,13 @@ const Todos = ({ onLogout }) => {
         },
         body: JSON.stringify({
           title: userInput.trim(),
-          description: '',
+          description: descriptionInput.trim(),
           priority: 'Medium',
         }),
       });
       if (!response.ok) throw new Error('Failed to create todo');
       setUserInput('');
+      setDescriptionInput('');
       await fetchTodos();
     } catch (err) {
       setError('Failed to create todo');
@@ -92,6 +95,11 @@ const Todos = ({ onLogout }) => {
     try {
       const todo = todoList.find((t) => t._id === todoId);
       if (todo) {
+        // Update local state immediately (optimistic update)
+        setTodoList(todoList.map(t => 
+          t._id === todoId ? { ...t, isCompleted: !t.isCompleted } : t
+        ));
+
         const response = await fetch(`${API_URL}/api/todos/${todoId}`, {
           method: 'PUT',
           headers: {
@@ -103,10 +111,11 @@ const Todos = ({ onLogout }) => {
           }),
         });
         if (!response.ok) throw new Error('Failed to update todo');
-        await fetchTodos();
       }
     } catch (err) {
       setError('Failed to update todo');
+      // Revert the change on error
+      await fetchTodos();
       console.error(err);
     }
   };
@@ -144,14 +153,14 @@ const Todos = ({ onLogout }) => {
   if (loading) {
     return (
       <div className="min-h-screen py-8 px-4 flex items-center justify-center" style={{
-        backgroundImage: 'url(https://i.pinimg.com/736x/2e/a6/a5/2ea6a59257ce12659a8f8a43e2df98bd.jpg)',
+        backgroundImage: 'url(https://i.pinimg.com/1200x/da/a8/b0/daa8b0e1912ec2f457c519fb4fe5cc40.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
       }}>
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="relative z-10 flex flex-col items-center gap-4">
-          <RefreshCw size={32} className="text-white animate-spin" />
+          <RefreshCw size={40} className="text-white animate-spin" />
           <p className="text-lg text-white font-medium">Loading your tasks...</p>
         </div>
       </div>
@@ -161,7 +170,7 @@ const Todos = ({ onLogout }) => {
   return (
     <>
     <div className="min-h-screen py-8 px-4 relative" style={{
-      backgroundImage: 'url(https://i.pinimg.com/736x/2e/a6/a5/2ea6a59257ce12659a8f8a43e2df98bd.jpg)',
+      backgroundImage: 'url(https://i.pinimg.com/1200x/da/a8/b0/daa8b0e1912ec2f457c519fb4fe5cc40.jpg)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',
@@ -171,19 +180,19 @@ const Todos = ({ onLogout }) => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-5xl font-bold text-indigo-900">Task Manager</h1>
-            <p className="text-gray-600 mt-2">{completedCount} of {totalCount} completed</p>
+            <h1 className="text-5xl font-bold text-white">Task Manager</h1>
+            <p className="text-gray-200 mt-2">{completedCount} of {totalCount} completed</p>
           </div>
           <div className="flex items-center gap-3">
             {user && (
-              <span className="text-sm text-gray-700">
-                Welcome, <span className="font-semibold text-indigo-900">{user.name}</span>
+              <span className="text-sm text-gray-100">
+                Welcome, <span className="font-semibold text-white">{user.name}</span>
               </span>
             )}
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100 rounded-lg transition"
+              className="p-2 text-blue-100 hover:text-white hover:bg-blue-500 rounded-lg transition"
               title="Refresh tasks"
             >
               <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -207,20 +216,25 @@ const Todos = ({ onLogout }) => {
         )}
 
         {/* Add Todo Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-indigo-100">
-          <h2 className="text-xl font-bold text-indigo-900 mb-4">Add New Task</h2>
-          <div className="flex gap-3">
+        <div className="bg-white/95 rounded-xl shadow-sm p-6 mb-8 border border-indigo-200">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Add New Task</h2>
+          <div className="flex flex-col gap-3">
             <input
               type="text"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
-              onKeyPress={handleKeyPress}
               placeholder="What needs to be done?"
               className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition"
             />
+            <textarea
+              value={descriptionInput}
+              onChange={(e) => setDescriptionInput(e.target.value)}
+              placeholder="Add description (optional)"
+              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition resize-none h-20"
+            />
             <button
               onClick={onAddTodo}
-              className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition"
+              className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition w-full"
             >
               Add
             </button>
@@ -228,9 +242,9 @@ const Todos = ({ onLogout }) => {
         </div>
 
         {/* Tasks Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-indigo-100 overflow-hidden">
-          <div className="px-6 py-4 bg-indigo-50 border-b border-indigo-100">
-            <h2 className="text-xl font-bold text-indigo-900">Your Tasks</h2>
+        <div className="bg-white/95 rounded-xl shadow-sm border border-indigo-200 overflow-hidden">
+          <div className="px-6 py-4 bg-gray-50 border-b border-indigo-200">
+            <h2 className="text-xl font-bold text-gray-800">Your Tasks</h2>
           </div>
 
           {todoList.length === 0 ? (
@@ -272,21 +286,6 @@ const Todos = ({ onLogout }) => {
                     </p>
                   </div>
 
-                  {/* Priority Badge */}
-                  {todo.priority && (
-                    <span
-                      className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${
-                        todo.priority === 'High'
-                          ? 'bg-red-100 text-red-700'
-                          : todo.priority === 'Medium'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-green-100 text-green-700'
-                      }`}
-                    >
-                      {todo.priority}
-                    </span>
-                  )}
-
                   {/* Delete Button */}
                   <button
                     onClick={() => onDeleteTodo(todo._id)}
@@ -306,5 +305,4 @@ const Todos = ({ onLogout }) => {
     </>
   );
 };
-
 export default Todos;

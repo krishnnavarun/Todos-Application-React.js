@@ -17,13 +17,17 @@ const generateToken = (user) => {
 
 const registerUser = async (req, res) => {
     try {
-        const { email, password, name } = req.body;
+        const { email, password, name, role } = req.body;
 
         if (!email || !password || !name) {
             return res.status(400).json({ 
                 error: "Email, password, and name are required" 
             });
         }
+
+        // Validate role if provided
+        const validRoles = ["customer", "admin"];
+        const userRole = role && validRoles.includes(role) ? role : "customer";
 
         const userExists = await User.findOne({ email: email.toLowerCase() });
         if (userExists) {
@@ -38,7 +42,7 @@ const registerUser = async (req, res) => {
             email: email.toLowerCase(),
             password: hashedPassword,
             name,
-            role: "customer"
+            role: userRole
         });
 
         const user = await newUser.save();

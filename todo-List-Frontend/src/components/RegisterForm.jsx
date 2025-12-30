@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const API_URL = 'http://localhost:3000';
 
@@ -6,10 +7,12 @@ const RegisterForm = ({ onToggleForm }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const passwordRef = useRef('');
+    const [role, setRole] = useState('customer');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
-
+    const [showPassword, setShowPassword] = useState(false);
+        
     const handleNameChange = (e) => {
         setName(e.target.value);
     }
@@ -40,6 +43,7 @@ const RegisterForm = ({ onToggleForm }) => {
                     email: email.trim(),
                     password: passwordRef.current.value,
                     name: name.trim(),
+                    role: role,
                 }),
             });
 
@@ -56,8 +60,8 @@ const RegisterForm = ({ onToggleForm }) => {
                 setName('');
                 setEmail('');
                 passwordRef.current.value = '';
+                setRole('customer');
                 
-                // Call callback after 1 second
                 setTimeout(() => {
                     onToggleForm();
                 }, 1000);
@@ -75,7 +79,14 @@ const RegisterForm = ({ onToggleForm }) => {
 
     return (
         <>
-            <div className="w-96 flex flex-col justify-center items-center mx-auto mt-20 p-6 bg-white shadow-lg rounded-xl">
+            <div className="min-h-screen flex items-center justify-center relative" style={{
+                backgroundImage: 'url(https://i.pinimg.com/1200x/da/a8/b0/daa8b0e1912ec2f457c519fb4fe5cc40.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundAttachment: 'fixed',
+            }}>
+                <div className="absolute inset-0 bg-black/40"></div>
+                <div className="w-96 flex flex-col justify-center items-center p-6 bg-white shadow-lg rounded-xl relative z-10">
                 <h1 className="font-bold text-4xl mb-8">Register</h1>
                 <input 
                     type="text" 
@@ -91,12 +102,29 @@ const RegisterForm = ({ onToggleForm }) => {
                     value={email} 
                     onChange={handleEmailChange} 
                 />
-                <input 
-                    type="password" 
-                    placeholder="Password" 
-                    className="border border-gray-300 m-3 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    ref={passwordRef} 
-                />
+                <div className="relative w-full m-3">
+                    <input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Password" 
+                        className="border border-gray-300 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        ref={passwordRef} 
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-600 hover:text-gray-800"
+                    >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                </div>
+                <select 
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="border border-gray-300 m-3 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                >
+                    <option value="customer">User</option>
+                    <option value="admin">Admin</option>
+                </select>
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                 {success && <p className="text-green-500 text-sm mt-2">{success}</p>}
                 <button 
@@ -112,6 +140,7 @@ const RegisterForm = ({ onToggleForm }) => {
                         Login here
                     </button>
                 </p>
+                </div>
             </div>
         </>
     )
