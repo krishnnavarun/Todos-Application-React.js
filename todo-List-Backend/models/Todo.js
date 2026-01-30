@@ -27,6 +27,14 @@ const todoSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "users",
             required: true
+        },
+        isDeleted: {
+            type: Boolean,
+            default: false
+        },
+        deletedAt: {
+            type: Date,
+            default: null
         }
     },
     { timestamps: true }

@@ -1,10 +1,10 @@
 const Todo = require("../models/Todo");
 
-// Get all todos for a user
+// Get all active todos for a user
 const getTodos = async (req, res) => {
     try {
         const userId = req.user.id;
-        const todos = await Todo.find({ userId }).sort({ createdAt: -1 });
+        const todos = await Todo.find({ userId, isDeleted: false }).sort({ createdAt: -1 });
         return res.status(200).json({
             message: "Todos fetched successfully",
             todos
@@ -12,6 +12,21 @@ const getTodos = async (req, res) => {
     } catch (err) {
         console.error("Get todos error:", err);
         res.status(500).json({ error: "Failed to fetch todos" });
+    }
+};
+
+// Get all deleted todos for a user
+const getDeletedTodos = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const deletedTodos = await Todo.find({ userId, isDeleted: true }).sort({ deletedAt: -1 });
+        return res.status(200).json({
+            message: "Deleted todos fetched successfully",
+            todos: deletedTodos
+        });
+    } catch (err) {
+        console.error("Get deleted todos error:", err);
+        res.status(500).json({ error: "Failed to fetch deleted todos" });
     }
 };
 
@@ -73,8 +88,58 @@ const updateTodo = async (req, res) => {
     }
 };
 
-// Delete a todo
+// Soft delete a todo (move to trash)
 const deleteTodo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const todo = await Todo.findOne({ _id: id, userId });
+        if (!todo) {
+            return res.status(404).json({ error: "Todo not found" });
+        }
+
+        todo.isDeleted = true;
+        todo.deletedAt = new Date();
+        const deletedTodo = await todo.save();
+
+        return res.status(200).json({
+            message: "Todo deleted successfully",
+            todo: deletedTodo
+        });
+    } catch (err) {
+        console.error("Delete todo error:", err);
+        res.status(500).json({ error: "Failed to delete todo" });
+    }
+};
+
+// Restore a deleted todo
+const restoreTodo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const todo = await Todo.findOne({ _id: id, userId, isDeleted: true });
+        if (!todo) {
+            return res.status(404).json({ error: "Deleted todo not found" });
+        }
+
+        todo.isDeleted = false;
+        todo.deletedAt = null;
+        const restoredTodo = await todo.save();
+
+        return res.status(200).json({
+            message: "Todo restored successfully",
+            todo: restoredTodo
+        });
+    } catch (err) {
+        console.error("Restore todo error:", err);
+        res.status(500).json({ error: "Failed to restore todo" });
+    }
+};
+
+// Permanently delete a todo
+const permanentlyDeleteTodo = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
@@ -86,13 +151,13 @@ const deleteTodo = async (req, res) => {
 
         await Todo.deleteOne({ _id: id });
         return res.status(200).json({
-            message: "Todo deleted successfully",
-            deletedTodo: todo
+            message: "Todo permanently deleted successfully",
+            todo
         });
     } catch (err) {
-        console.error("Delete todo error:", err);
-        res.status(500).json({ error: "Failed to delete todo" });
+        console.error("Permanently delete todo error:", err);
+        res.status(500).json({ error: "Failed to permanently delete todo" });
     }
 };
 
-module.exports = { getTodos, createTodo, updateTodo, deleteTodo };
+module.exports = { getTodos, getDeletedTodos, createTodo, updateTodo, deleteTodo, restoreTodo, permanentlyDeleteTodo };
