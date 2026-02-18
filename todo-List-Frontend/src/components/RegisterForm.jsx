@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'todos-app-2026-pxmkud5nb-krishnavaruns-projects.vercel.app';
 
 const RegisterForm = ({ onToggleForm }) => {
     const [name, setName] = useState('');
@@ -71,7 +71,7 @@ const RegisterForm = ({ onToggleForm }) => {
             }
         } catch (error) {
             console.error('Register error:', error);
-            const errorMsg = error.message || 'Error registering. Please make sure your backend is running on localhost:3000';
+            const errorMsg = error.message || 'Error registering. Please make sure your backend is running on localhost:3001';
             setError(errorMsg);
         } finally {
             setLoading(false);

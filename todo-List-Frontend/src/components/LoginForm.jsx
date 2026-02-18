@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import RegisterForm from "./RegisterForm";
 import { Eye, EyeOff } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'todos-app-2026-pxmkud5nb-krishnavaruns-projects.vercel.app';
 
 const LoginForm = ({ onLoginSuccess }) => {
     const [email, setEmail] = useState('');
@@ -69,7 +69,7 @@ const LoginForm = ({ onLoginSuccess }) => {
             }
         } catch (error) {
             console.error('Login error:', error);
-            const errorMsg = error.message || 'Error logging in. Please make sure your backend is running on localhost:3000';
+            const errorMsg = error.message || 'Error logging in. Please make sure your backend is running on localhost:3001';
             setError(errorMsg);
         } finally {
             setLoading(false);
