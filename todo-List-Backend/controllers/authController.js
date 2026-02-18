@@ -18,13 +18,13 @@ const generateToken = (user) => {
 const registerUser = async (req, res) => {
     try {
         const { email, password, name, role } = req.body;
+        console.log("Register attempt:", { email, name, role });
 
         if (!email || !password || !name) {
             return res.status(400).json({ 
                 error: "Email, password, and name are required" 
             });
         }
-
         // Validate role if provided
         const validRoles = ["customer", "admin"];
         const userRole = role && validRoles.includes(role) ? role : "customer";
@@ -59,9 +59,10 @@ const registerUser = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error("Register error:", err);
+        console.error("Register error:", err.message);
+        console.error("Full error:", err);
         res.status(500).json({ 
-            error: "Registration failed" 
+            error: "Registration failed: " + err.message
         });
     }
 };

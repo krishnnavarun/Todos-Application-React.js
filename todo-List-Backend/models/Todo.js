@@ -10,14 +10,14 @@ const todoSchema = new mongoose.Schema(
             type: String,
             default: ""
         },
-        isCompleted: {
-            type: Boolean,
-            default: false
-        },
         priority: {
             type: String,
             enum: ["Low", "Medium", "High"],
             default: "Medium"
+        },
+        isCompleted: {
+            type: Boolean,
+            default: false
         },
         dueDate: {
             type: Date,

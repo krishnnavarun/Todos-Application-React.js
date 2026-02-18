@@ -47,12 +47,13 @@ const RegisterForm = ({ onToggleForm }) => {
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error('Registration failed');
-            }
-
             const data = await response.json();
-            console.log('Register Response:', data);
+            console.log('Register Response:', data, 'Status:', response.status);
+
+            if (!response.ok) {
+                setError(data.error || 'Registration failed');
+                return;
+            }
 
             if (data.token) {
                 setSuccess('Registration successful! Redirecting to login...');
@@ -66,7 +67,7 @@ const RegisterForm = ({ onToggleForm }) => {
                     onToggleForm();
                 }, 1000);
             } else {
-                setError('Registration failed');
+                setError(data.error || 'Registration failed');
             }
         } catch (error) {
             console.error('Register error:', error);
