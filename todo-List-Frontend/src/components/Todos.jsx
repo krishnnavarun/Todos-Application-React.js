@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, LogOut, AlertCircle, RefreshCw, CheckCircle2, Circle, RotateCcw, Trash, Calendar, Clock, Archive, ChevronDown } from 'lucide-react';
 
-// For local development: http://localhost:3000
-
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const Todos = ({ onLogout }) => {
   const [todoList, setTodoList] = useState([]);

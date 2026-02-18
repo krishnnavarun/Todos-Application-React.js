@@ -1,0 +1,4 @@
+# Frontend Environment Variables for Vercel
+# Copy this to Vercel dashboard -> Settings -> Environment Variables
+
+VITE_API_URL=https://your-backend-url-here.vercel.app
