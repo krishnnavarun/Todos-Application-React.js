@@ -8,12 +8,20 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: ["https://todos-app-2026-6i1tgf4ap-krishnavaruns-projects.vercel.app", "https://todos-app-frontend-2026-r90atx01e-krishnavaruns-projects.vercel.app", "http://localhost:3001"],
+    origin: ["https://todos-app-2026-6i1tgf4ap-krishnavaruns-projects.vercel.app", "https://todos-app-frontend-2026-kecs1ifey-krishnavaruns-projects.vercel.app", "http://localhost:3001"],
     methods: ["POST", "GET", "DELETE", "PUT", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
+
+// Handle preflight
+app.options('*', cors({
+    origin: ["https://todos-app-2026-6i1tgf4ap-krishnavaruns-projects.vercel.app", "https://todos-app-frontend-2026-kecs1ifey-krishnavaruns-projects.vercel.app", "http://localhost:3001"],
+    methods: ["POST", "GET", "DELETE", "PUT", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // Connect Database
 connectDB();
