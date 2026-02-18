@@ -8,7 +8,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: ["https://deploy-earned-ida.vercel.app"],
+    origin: ["https://todos-app-2026-6i1tgf4ap-krishnavaruns-projects.vercel.app", "http://localhost:3001"],
     methods: ["POST", "GET", "DELETE", "PUT"],
     credentials: true
 }));
