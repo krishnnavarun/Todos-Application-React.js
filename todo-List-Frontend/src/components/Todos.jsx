@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, LogOut, AlertCircle, RefreshCw, CheckCircle2, Circle, RotateCcw, Trash, Calendar, Clock, Archive, ChevronDown } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'todos-app-2026-pxmkud5nb-krishnavaruns-projects.vercel.app';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const Todos = ({ onLogout }) => {
   const [todoList, setTodoList] = useState([]);
