@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL;
 const RegisterForm = ({ onToggleForm }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
