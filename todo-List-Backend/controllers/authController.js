@@ -1,8 +1,13 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const jwtSecret = process.env.JWT_SECRET || process.env.SECRET_KEY;
 
 const generateToken = (user) => {
+    if (!jwtSecret) {
+        throw new Error("JWT secret is not configured");
+    }
+
     return jwt.sign(
         { 
             id: user._id, 
@@ -10,7 +15,7 @@ const generateToken = (user) => {
             role: user.role,
             name: user.name
         },
-        process.env.SECRET_KEY,
+        jwtSecret,
         { expiresIn: "7d" }
     );
 };
@@ -18,8 +23,6 @@ const generateToken = (user) => {
 const registerUser = async (req, res) => {
     try {
         const { email, password, name, role } = req.body;
-        console.log("Register attempt:", { email, name, role });
-
         if (!email || !password || !name) {
             return res.status(400).json({ 
                 error: "Email, password, and name are required" 
@@ -55,12 +58,13 @@ const registerUser = async (req, res) => {
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
+                profileImage: user.profileImage,
+                createdAt: user.createdAt
             }
         });
     } catch (err) {
         console.error("Register error:", err.message);
-        console.error("Full error:", err);
         res.status(500).json({ 
             error: "Registration failed: " + err.message
         });
@@ -100,7 +104,9 @@ const loginUser = async (req, res) => {
                 id: user._id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
+                profileImage: user.profileImage,
+                createdAt: user.createdAt
             }
         });
     } catch (err) {
@@ -117,4 +123,52 @@ const logoutUser = (req, res) => {
     });
 };
 
-module.exports = { registerUser, loginUser, logoutUser };
+const updateProfileImage = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { profileImage } = req.body;
+
+        if (!profileImage) {
+            return res.status(400).json({
+                error: "Profile image is required"
+            });
+        }
+
+        if (typeof profileImage !== 'string') {
+            return res.status(400).json({
+                error: "Profile image must be a string (base64 or URL)"
+            });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { profileImage },
+            { new: true }
+        ).select('-password');
+
+        if (!user) {
+            return res.status(404).json({
+                error: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Profile image updated successfully",
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                profileImage: user.profileImage,
+                createdAt: user.createdAt
+            }
+        });
+    } catch (err) {
+        console.error("Update profile image error:", err.message);
+        res.status(500).json({
+            error: "Failed to update profile image: " + err.message
+        });
+    }
+};
+
+module.exports = { registerUser, loginUser, logoutUser, updateProfileImage };

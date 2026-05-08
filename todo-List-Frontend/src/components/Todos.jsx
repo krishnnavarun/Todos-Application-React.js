@@ -1,9 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Trash2, LogOut, AlertCircle, RefreshCw, CheckCircle2, Circle, RotateCcw, Trash, Calendar, Clock, Archive, ChevronDown } from 'lucide-react';
+import {
+  Trash2,
+  LogOut,
+  AlertCircle,
+  RefreshCw,
+  CheckCircle2,
+  Circle,
+  RotateCcw,
+  Calendar,
+  Clock3,
+  Archive,
+  ChevronDown,
+  Plus,
+  ClipboardList,
+  CheckCheck,
+  ListTodo,
+} from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const Todos = ({ onLogout }) => {
+const Todos = ({ onLogout, onOpenProfile }) => {
   const [todoList, setTodoList] = useState([]);
   const [deletedTodoList, setDeletedTodoList] = useState([]);
   const [userInput, setUserInput] = useState('');
@@ -208,10 +224,14 @@ const Todos = ({ onLogout }) => {
 
   const completedCount = todoList.filter(t => t.isCompleted).length;
   const totalCount = todoList.length;
+  const pendingCount = totalCount - completedCount;
 
-  const isOverdue = (dueDate) => {
+  const isOverdue = (dueDate, isCompleted) => {
     if (!dueDate) return false;
-    return new Date(dueDate) < new Date() && !todoList.find(t => t._id === todoList._id && t.isCompleted);
+    if (isCompleted) return false;
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    return new Date(dueDate) < endOfToday;
   };
 
   const isDueSoon = (dueDate) => {
@@ -240,318 +260,277 @@ const Todos = ({ onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen py-8 px-4 flex items-center justify-center relative overflow-hidden" style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)',
-      }}>
-        <style>{`
-          @keyframes blob1 {
-            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.05; }
-            50% { transform: translate(30px, -30px) scale(1.1); opacity: 0.08; }
-          }
-          @keyframes blob2 {
-            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.05; }
-            50% { transform: translate(-30px, 30px) scale(1.1); opacity: 0.08; }
-          }
-          .blob1 {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, #3b82f6, transparent);
-            border-radius: 50%;
-            filter: blur(40px);
-            animation: blob1 8s ease-in-out infinite;
-            top: -100px;
-            left: -100px;
-          }
-          .blob2 {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, #8b5cf6, transparent);
-            border-radius: 50%;
-            filter: blur(40px);
-            animation: blob2 10s ease-in-out infinite;
-            bottom: -100px;
-            right: -100px;
-          }
-        `}</style>
-        <div className="blob1"></div>
-        <div className="blob2"></div>
-        <div className="relative z-10 flex flex-col items-center gap-4">
-          <RefreshCw size={40} className="text-white animate-spin" />
-          <p className="text-lg text-white font-medium">Loading your tasks...</p>
+      <div className="min-h-screen px-4 py-10 relative flex items-center justify-center">
+        <div className="grain-overlay"></div>
+        <div className="surface-card px-8 py-10 text-center fade-in">
+          <RefreshCw size={34} className="mx-auto mb-4 text-cyan-700 animate-spin" />
+          <p className="text-slate-700 font-medium">Loading your workspace...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-    <div className="min-h-screen py-8 px-4 relative overflow-hidden" style={{
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)',
-    }}>
-      <style>{`
-        @keyframes blob1 {
-          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.05; }
-          50% { transform: translate(30px, -30px) scale(1.1); opacity: 0.08; }
-        }
-        @keyframes blob2 {
-          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.05; }
-          50% { transform: translate(-30px, 30px) scale(1.1); opacity: 0.08; }
-        }
-        .blob1 {
-          position: absolute;
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, #3b82f6, transparent);
-          border-radius: 50%;
-          filter: blur(50px);
-          animation: blob1 8s ease-in-out infinite;
-          top: -150px;
-          left: -150px;
-        }
-        .blob2 {
-          position: absolute;
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, #8b5cf6, transparent);
-          border-radius: 50%;
-          filter: blur(50px);
-          animation: blob2 10s ease-in-out infinite;
-          bottom: -150px;
-          right: -150px;
-        }
-      `}</style>
-      <div className="blob1"></div>
-      <div className="blob2"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-slate-900/20 to-transparent z-0"></div>
-      <div className="max-w-3xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-5xl font-bold text-white">Task Manager</h1>
-            <p className="text-gray-200 mt-2">{completedCount} of {totalCount} completed</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {user && (
-              <span className="text-sm text-gray-100">
-                Welcome, <span className="font-semibold text-white">{user.name}</span>
-              </span>
-            )}
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="p-2 text-blue-100 hover:text-white hover:bg-blue-500 rounded-lg transition"
-              title="Refresh tasks"
-            >
-              <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen px-4 py-8 md:py-10 lg:py-12 relative">
+      <div className="grain-overlay"></div>
+      <div className="mx-auto max-w-6xl relative z-10 space-y-6 slide-up">
+        <header className="frost-card rounded-3xl px-5 py-5 md:px-8 md:py-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="uppercase text-xs tracking-[0.18em] text-cyan-100/70 mb-1">Workspace Dashboard</p>
+              <h1 className="text-3xl md:text-4xl text-white font-bold">Task Command Center</h1>
+              <p className="text-cyan-50/80 mt-1 text-sm md:text-base">
+                {completedCount} completed out of {totalCount} total tasks.
+              </p>
+            </div>
 
-        {/* Error Message */}
+            <div className="flex flex-wrap gap-2 md:gap-3 md:items-center">
+              {user && (
+                <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-sm text-white">
+                  Signed in as <span className="font-semibold">{user.name}</span>
+                </span>
+              )}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2 text-white hover:bg-white/20 transition disabled:opacity-60"
+                title="Refresh tasks"
+              >
+                <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                Refresh
+              </button>
+              <button
+                onClick={onOpenProfile}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2 text-white hover:bg-white/20 transition"
+              >
+                Profile
+              </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-white font-medium hover:bg-rose-700 transition"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <article className="surface-card p-5">
+            <p className="text-sm text-slate-500 mb-2">Total Tasks</p>
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold text-slate-900">{totalCount}</p>
+              <ClipboardList className="text-cyan-700" size={26} />
+            </div>
+          </article>
+          <article className="surface-card p-5">
+            <p className="text-sm text-slate-500 mb-2">Completed</p>
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold text-slate-900">{completedCount}</p>
+              <CheckCheck className="text-emerald-700" size={26} />
+            </div>
+          </article>
+          <article className="surface-card p-5">
+            <p className="text-sm text-slate-500 mb-2">Pending</p>
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold text-slate-900">{pendingCount}</p>
+              <ListTodo className="text-orange-700" size={26} />
+            </div>
+          </article>
+        </section>
+
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
+          <div className="surface-card p-4 border-red-200 bg-red-50/90 flex items-start gap-3">
             <AlertCircle size={20} className="text-red-600 mt-0.5 flex-shrink-0" />
             <p className="text-red-700">{error}</p>
           </div>
         )}
 
-        {/* Add Todo Section */}
-        <div className="bg-white/95 rounded-xl shadow-sm p-6 mb-8 border border-indigo-200">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Add New Task</h2>
-          <div className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              placeholder="What needs to be done?"
-              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition"
-            />
-            <textarea
-              value={descriptionInput}
-              onChange={(e) => setDescriptionInput(e.target.value)}
-              placeholder="Add description (optional)"
-              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition resize-none h-20"
-            />
-            <div className="flex gap-3">
-              <div className="flex-1 flex items-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-lg focus-within:border-indigo-500 focus-within:shadow-md transition">
-                <Calendar size={20} className="text-indigo-600" />
-                <input
-                  type="date"
-                  value={dueDateInput}
-                  onChange={(e) => setDueDateInput(e.target.value)}
-                  className="flex-1 outline-none bg-transparent text-gray-800"
-                />
-              </div>
-              {dueDateInput && (
+        <section className="surface-card p-5 md:p-7">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900">Create New Task</h2>
+            <Calendar size={22} className="text-cyan-700" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Task title"
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+              />
+              <textarea
+                value={descriptionInput}
+                onChange={(e) => setDescriptionInput(e.target.value)}
+                placeholder="Description (optional)"
+                className="w-full min-h-[96px] resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-slate-700">Due Date</label>
+              <input
+                type="date"
+                value={dueDateInput}
+                onChange={(e) => setDueDateInput(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+              />
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setDueDateInput('')}
-                  className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                  onClick={onAddTodo}
+                  className="inline-flex items-center justify-center gap-1 rounded-xl bg-cyan-700 text-white py-2.5 font-semibold hover:bg-cyan-800 transition"
+                >
+                  <Plus size={16} /> Add
+                </button>
+                <button
+                  onClick={() => {
+                    setUserInput('');
+                    setDescriptionInput('');
+                    setDueDateInput('');
+                  }}
+                  className="rounded-xl border border-slate-300 bg-white text-slate-700 py-2.5 font-semibold hover:bg-slate-100 transition"
                 >
                   Clear
                 </button>
-              )}
+              </div>
             </div>
-            <button
-              onClick={onAddTodo}
-              className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition w-full"
-            >
-              Add
-            </button>
           </div>
-        </div>
+        </section>
 
-        {/* Tasks Section */}
-        <div className="bg-white/95 rounded-xl shadow-sm border border-indigo-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gray-50 border-b border-indigo-200">
-            <h2 className="text-xl font-bold text-gray-800">Your Tasks</h2>
+        <section className="surface-card overflow-hidden">
+          <div className="px-5 md:px-7 py-4 border-b border-slate-200 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-slate-900">Active Tasks</h2>
+            <span className="text-sm text-slate-500">{todoList.length} items</span>
           </div>
 
           {todoList.length === 0 ? (
             <div className="p-12 text-center">
-              <Circle size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 text-lg">No tasks yet. Add one to get started!</p>
+              <Circle size={44} className="mx-auto text-slate-300 mb-3" />
+              <p className="text-slate-500 text-lg">No tasks yet. Add one to get started.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200">
-              {todoList.map((todo) => (
-                <li
-                  key={todo._id}
-                  className={`flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition ${
-                    todo.isCompleted ? 'bg-gray-50' : ''
-                  }`}
-                >
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => onTodoStatusChange(todo._id)}
-                    className="flex-shrink-0 text-indigo-600 hover:text-indigo-700 transition"
-                  >
-                    {todo.isCompleted ? (
-                      <CheckCircle2 size={24} className="text-green-500" />
-                    ) : (
-                      <Circle size={24} />
-                    )}
-                  </button>
+            <ul className="divide-y divide-slate-200">
+              {todoList.map((todo) => {
+                const overdue = isOverdue(todo.dueDate, todo.isCompleted);
+                const dueSoon = isDueSoon(todo.dueDate);
 
-              {/* Task Title */}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-base font-medium ${
-                        todo.isCompleted
-                          ? 'line-through text-gray-500'
-                          : 'text-gray-800'
-                      }`}
-                    >
-                      {todo.title}
-                    </p>
-                    {todo.dueDate && (
-                      <div className={`flex items-center gap-1 mt-1 text-sm ${
-                        isOverdue(todo.dueDate) ? 'text-red-600 font-semibold' :
-                        isDueSoon(todo.dueDate) ? 'text-orange-600' :
-                        'text-gray-500'
-                      }`}>
-                        <Clock size={14} />
-                        <span>
-                          {isOverdue(todo.dueDate) ? '⚠️ Overdue: ' : ''}
-                          {formatDueDate(todo.dueDate)}
-                        </span>
+                return (
+                  <li key={todo._id} className="px-5 md:px-7 py-4 hover:bg-slate-50/70 transition">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => onTodoStatusChange(todo._id)}
+                        className="mt-0.5 flex-shrink-0 text-cyan-700 hover:text-cyan-800 transition"
+                        title="Toggle completion"
+                      >
+                        {todo.isCompleted ? (
+                          <CheckCircle2 size={23} className="text-emerald-600" />
+                        ) : (
+                          <Circle size={23} />
+                        )}
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                          <h3 className={`text-base md:text-lg font-semibold ${todo.isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                            {todo.title}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            {todo.dueDate && overdue && (
+                              <span className="status-chip status-chip-danger">
+                                <Clock3 size={13} /> Overdue
+                              </span>
+                            )}
+                            {todo.dueDate && !overdue && dueSoon && (
+                              <span className="status-chip status-chip-warning">
+                                <Clock3 size={13} /> Due Soon
+                              </span>
+                            )}
+                            {todo.dueDate && !overdue && !dueSoon && (
+                              <span className="status-chip status-chip-neutral">
+                                <Calendar size={13} /> Scheduled
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {todo.description && (
+                          <p className="text-slate-500 text-sm mt-1 leading-relaxed">{todo.description}</p>
+                        )}
+
+                        {todo.dueDate && (
+                          <p className="text-slate-500 text-xs mt-2">Due: {formatDueDate(todo.dueDate)}</p>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => onDeleteTodo(todo._id)}
-                    disabled={deleting[todo._id]}
-                    className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition disabled:opacity-50"
-                    title="Delete task"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </li>
-              ))}
+                      <button
+                        onClick={() => onDeleteTodo(todo._id)}
+                        disabled={deleting[todo._id]}
+                        className="flex-shrink-0 self-start rounded-lg p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition disabled:opacity-50"
+                        title="Delete task"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
-        </div>
+        </section>
 
-        {/* Deleted Tasks Section */}
-        <div className="mt-8">
+        <section className="surface-card overflow-hidden mb-6">
           <button
             onClick={() => setShowDeletedTasks(!showDeletedTasks)}
-            className="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-red-50 to-orange-50 hover:from-red-100 hover:to-orange-100 text-gray-800 font-bold rounded-lg transition border border-red-300 shadow-sm"
+            className="w-full px-5 md:px-7 py-4 flex items-center justify-between text-left hover:bg-slate-50/70 transition"
           >
             <span className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Archive size={22} className="text-red-600" />
-              </div>
-              <span className="text-lg">Deleted Tasks ({deletedTodoList.length})</span>
+              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-rose-100 text-rose-700">
+                <Archive size={18} />
+              </span>
+              <span>
+                <span className="block text-lg font-semibold text-slate-900">Deleted Tasks</span>
+                <span className="block text-xs text-slate-500">{deletedTodoList.length} archived items</span>
+              </span>
             </span>
-            <ChevronDown 
-              size={24} 
-              className={`text-red-600 transition-transform duration-300 ${showDeletedTasks ? 'rotate-180' : ''}`}
-            />
+            <ChevronDown size={22} className={`text-slate-500 transition-transform ${showDeletedTasks ? 'rotate-180' : ''}`} />
           </button>
 
           {showDeletedTasks && (
-            <div className="mt-4 bg-white/95 rounded-xl shadow-lg border border-red-200 overflow-hidden">
-              <div className="px-6 py-4 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-200 flex items-center gap-3">
-                <Archive size={24} className="text-red-600" />
-                <h2 className="text-xl font-bold text-red-900">Deleted Tasks</h2>
-              </div>
-
+            <div className="border-t border-slate-200">
               {deletedTodoList.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                    <Archive size={32} className="text-red-300" />
-                  </div>
-                  <p className="text-gray-500 text-lg font-medium">No deleted tasks</p>
-                  <p className="text-gray-400 text-sm mt-2">Your deleted items will appear here</p>
+                <div className="p-10 text-center">
+                  <Archive size={36} className="mx-auto text-slate-300 mb-3" />
+                  <p className="text-slate-500">No deleted tasks right now.</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-red-100">
+                <ul className="divide-y divide-slate-200">
                   {deletedTodoList.map((todo) => (
-                    <li
-                      key={todo._id}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-red-50 transition group"
-                    >
-                      <div className="flex-shrink-0">
-                        <Archive size={20} className="text-red-400 group-hover:text-red-600" />
-                      </div>
-                      {/* Task Title */}
+                    <li key={todo._id} className="px-5 md:px-7 py-4 flex items-center gap-3 hover:bg-slate-50/70 transition">
+                      <Archive size={16} className="text-rose-400" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-base font-medium text-gray-700 line-through text-gray-500">
-                          {todo.title}
-                        </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-slate-500 font-medium line-through">{todo.title}</p>
+                        <p className="text-xs text-slate-400 mt-1">
                           Deleted: {new Date(todo.deletedAt).toLocaleDateString()}
                         </p>
                       </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => onRestoreTodo(todo._id)}
                           disabled={deleting[todo._id]}
-                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg transition disabled:opacity-50 font-semibold"
+                          className="inline-flex items-center gap-1 rounded-lg border border-cyan-200 px-3 py-1.5 text-cyan-700 hover:bg-cyan-50 transition disabled:opacity-50"
                           title="Restore task"
                         >
-                          <RotateCcw size={20} />
+                          <RotateCcw size={14} /> Restore
                         </button>
                         <button
                           onClick={() => onPermanentlyDeleteTodo(todo._id)}
                           disabled={deleting[todo._id]}
-                          className="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-lg transition disabled:opacity-50 font-semibold"
+                          className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-rose-700 hover:bg-rose-50 transition disabled:opacity-50"
                           title="Permanently delete"
                         >
-                          <Trash2 size={20} />
+                          <Trash2 size={14} /> Remove
                         </button>
                       </div>
                     </li>
@@ -560,10 +539,9 @@ const Todos = ({ onLogout }) => {
               )}
             </div>
           )}
-        </div>
+        </section>
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 export default Todos;

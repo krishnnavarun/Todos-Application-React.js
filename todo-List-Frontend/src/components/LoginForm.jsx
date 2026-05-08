@@ -81,55 +81,82 @@ const LoginForm = ({ onLoginSuccess }) => {
             {showRegister ? (
                 <RegisterForm onToggleForm={() => setShowRegister(false)} />
             ) : (
-                <div className="min-h-screen flex items-center justify-center relative" style={{
-                    backgroundImage: 'url(https://i.pinimg.com/1200x/da/a8/b0/daa8b0e1912ec2f457c519fb4fe5cc40.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundAttachment: 'fixed',
-                }}>
-                    <div className="absolute inset-0 bg-black/40"></div>
-                    <div className="w-96 flex flex-col justify-center items-center p-6 bg-white shadow-lg rounded-xl relative z-10 overflow-hidden" style={{
-                        backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.9) 100%), url(https://www.transparenttextures.com/patterns/asfalt-light.png)',
-                        backgroundBlend: 'overlay',
-                    }}>
-                    <h1 className="font-bold text-4xl mb-8">Login</h1>
-                    <input 
-                        type="email" 
-                        placeholder="Email" 
-                        className="border border-gray-300 m-3 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        value={email} 
-                        onChange={handleEmailChange} 
-                    />
-                    <div className="relative w-full m-3">
-                        <input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="Password" 
-                            className="border border-gray-300 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-600"
-                            ref={passwordRef} 
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-3 text-gray-600 hover:text-gray-800"
-                        >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                        </button>
-                    </div>
-                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-                    {success && <p className="text-green-500 text-sm mt-2">{success}</p>}
-                    <button 
-                        className="bg-blue-600 text-white text-lg px-6 py-2 mt-5 rounded-lg mb-4 hover:bg-blue-700 disabled:bg-gray-400 w-full transition"
-                        onClick={handleSubmit}
-                        disabled={loading}
-                    >
-                        {loading ? 'Logging in...' : 'Login'}
-                    </button>
-                    <p className="text-gray-600 mb-3 text-sm">
-                        Don't have an account? 
-                        <button onClick={() => setShowRegister(true)} className="text-blue-600 hover:underline font-semibold ml-1">
-                            Register here
-                        </button>
-                    </p>
+                <div className="min-h-screen relative px-4 py-10 lg:py-16">
+                    <div className="grain-overlay"></div>
+                    <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-2 items-stretch slide-up">
+                        <section className="frost-card rounded-3xl p-8 lg:p-10 text-white flex flex-col justify-between">
+                            <div>
+                                <p className="uppercase text-xs tracking-[0.18em] text-cyan-100/80 mb-4">Focused Productivity</p>
+                                <h1 className="text-4xl md:text-5xl leading-tight font-bold mb-4">Plan your day with clarity and confidence.</h1>
+                                <p className="text-cyan-50/85 text-base md:text-lg">
+                                    Keep every task organized, visible, and actionable with a professional workspace built for speed.
+                                </p>
+                            </div>
+                            <div className="mt-8 grid gap-3 text-sm text-cyan-50/90">
+                                <p className="rounded-xl bg-white/10 px-4 py-3 border border-white/15">Track priorities and due dates with clean task cards.</p>
+                                <p className="rounded-xl bg-white/10 px-4 py-3 border border-white/15">Archive and restore deleted tasks whenever you need.</p>
+                            </div>
+                        </section>
+
+                        <section className="surface-card p-7 md:p-9 flex flex-col justify-center fade-in">
+                            <div className="mb-6">
+                                <h2 className="text-3xl font-bold text-slate-900">Welcome back</h2>
+                                <p className="text-slate-500 mt-1">Sign in to continue managing your tasks.</p>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        placeholder="you@example.com"
+                                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+                                        value={email}
+                                        onChange={handleEmailChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="Enter your password"
+                                            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-800 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-100"
+                                            ref={passwordRef}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                                        >
+                                            {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {error && <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">{error}</p>}
+                                {success && <p className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm text-emerald-700">{success}</p>}
+
+                                <button
+                                    className="w-full rounded-xl bg-cyan-700 text-white py-3 font-semibold transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                                    type="submit"
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Logging in...' : 'Login'}
+                                </button>
+                            </form>
+
+                            <p className="text-slate-600 mt-5 text-sm">
+                                Don't have an account?
+                                <button
+                                    onClick={() => setShowRegister(true)}
+                                    className="ml-1 font-semibold text-cyan-700 hover:text-cyan-800"
+                                >
+                                    Register here
+                                </button>
+                            </p>
+                        </section>
                     </div>
                 </div>
             )}

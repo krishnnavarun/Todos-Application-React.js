@@ -1,10 +1,24 @@
 const Todo = require("../models/Todo");
 
+const parseTodoUpdate = (input = {}) => {
+    const update = {};
+
+    if (input.title !== undefined) update.title = input.title;
+    if (input.description !== undefined) update.description = input.description;
+    if (input.isCompleted !== undefined) update.isCompleted = input.isCompleted;
+    if (input.priority !== undefined) update.priority = input.priority;
+    if (input.dueDate !== undefined) update.dueDate = input.dueDate;
+
+    return update;
+};
+
 // Get all active todos for a user
 const getTodos = async (req, res) => {
     try {
         const userId = req.user.id;
-        const todos = await Todo.find({ userId, isDeleted: false }).sort({ createdAt: -1 });
+        const todos = await Todo.find({ userId, isDeleted: false })
+            .sort({ createdAt: -1 })
+            .lean();
         return res.status(200).json({
             message: "Todos fetched successfully",
             todos
@@ -19,7 +33,9 @@ const getTodos = async (req, res) => {
 const getDeletedTodos = async (req, res) => {
     try {
         const userId = req.user.id;
-        const deletedTodos = await Todo.find({ userId, isDeleted: true }).sort({ deletedAt: -1 });
+        const deletedTodos = await Todo.find({ userId, isDeleted: true })
+            .sort({ deletedAt: -1 })
+            .lean();
         return res.status(200).json({
             message: "Deleted todos fetched successfully",
             todos: deletedTodos
@@ -35,14 +51,15 @@ const createTodo = async (req, res) => {
     try {
         const { title, description, priority, dueDate } = req.body;
         const userId = req.user.id;
+        const cleanTitle = String(title || "").trim();
 
-        if (!title) {
+        if (!cleanTitle) {
             return res.status(400).json({ error: "Title is required" });
         }
 
         const newTodo = new Todo({
-            title,
-            description: description || "",
+            title: cleanTitle,
+            description: String(description || "").trim(),
             priority: priority || "Medium",
             dueDate: dueDate || null,
             userId
@@ -63,21 +80,19 @@ const createTodo = async (req, res) => {
 const updateTodo = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, isCompleted, priority, dueDate } = req.body;
         const userId = req.user.id;
+        const update = parseTodoUpdate(req.body);
 
-        const todo = await Todo.findOne({ _id: id, userId });
-        if (!todo) {
+        const updatedTodo = await Todo.findOneAndUpdate(
+            { _id: id, userId },
+            update,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedTodo) {
             return res.status(404).json({ error: "Todo not found" });
         }
 
-        if (title !== undefined) todo.title = title;
-        if (description !== undefined) todo.description = description;
-        if (isCompleted !== undefined) todo.isCompleted = isCompleted;
-        if (priority !== undefined) todo.priority = priority;
-        if (dueDate !== undefined) todo.dueDate = dueDate;
-
-        const updatedTodo = await todo.save();
         return res.status(200).json({
             message: "Todo updated successfully",
             todo: updatedTodo
@@ -94,14 +109,15 @@ const deleteTodo = async (req, res) => {
         const { id } = req.params;
         const userId = req.user.id;
 
-        const todo = await Todo.findOne({ _id: id, userId });
-        if (!todo) {
+        const deletedTodo = await Todo.findOneAndUpdate(
+            { _id: id, userId, isDeleted: false },
+            { isDeleted: true, deletedAt: new Date() },
+            { new: true }
+        );
+
+        if (!deletedTodo) {
             return res.status(404).json({ error: "Todo not found" });
         }
-
-        todo.isDeleted = true;
-        todo.deletedAt = new Date();
-        const deletedTodo = await todo.save();
 
         return res.status(200).json({
             message: "Todo deleted successfully",
@@ -119,14 +135,15 @@ const restoreTodo = async (req, res) => {
         const { id } = req.params;
         const userId = req.user.id;
 
-        const todo = await Todo.findOne({ _id: id, userId, isDeleted: true });
-        if (!todo) {
+        const restoredTodo = await Todo.findOneAndUpdate(
+            { _id: id, userId, isDeleted: true },
+            { isDeleted: false, deletedAt: null },
+            { new: true }
+        );
+
+        if (!restoredTodo) {
             return res.status(404).json({ error: "Deleted todo not found" });
         }
-
-        todo.isDeleted = false;
-        todo.deletedAt = null;
-        const restoredTodo = await todo.save();
 
         return res.status(200).json({
             message: "Todo restored successfully",
@@ -144,12 +161,11 @@ const permanentlyDeleteTodo = async (req, res) => {
         const { id } = req.params;
         const userId = req.user.id;
 
-        const todo = await Todo.findOne({ _id: id, userId });
+        const todo = await Todo.findOneAndDelete({ _id: id, userId });
         if (!todo) {
             return res.status(404).json({ error: "Todo not found" });
         }
 
-        await Todo.deleteOne({ _id: id });
         return res.status(200).json({
             message: "Todo permanently deleted successfully",
             todo

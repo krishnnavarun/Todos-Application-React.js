@@ -1,14 +1,24 @@
 const mongoose = require("mongoose");
 
 async function connectDB() {
-    try{
+    const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/todo-list";
+
+    try {
         console.log("Attempting to connect to MongoDB...");
-        await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/todo-list");
+        await mongoose.connect(mongoUri, {
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 5000,
+            autoIndex: process.env.NODE_ENV !== "production",
+        });
         console.log("Database connected successfully");
-    }catch(err){
-        console.log("Database connection failed", err.message);
-        process.exit(1);
-    }   
+    } catch (err) {
+        console.error("Database connection failed:", err.message);
+        throw err;
+    }
 }
 
-module.exports = connectDB;
+async function disconnectDB() {
+    await mongoose.connection.close();
+}
+
+module.exports = { connectDB, disconnectDB };

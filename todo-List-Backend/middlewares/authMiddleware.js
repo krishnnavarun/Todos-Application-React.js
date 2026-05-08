@@ -1,7 +1,12 @@
 const jwt = require("jsonwebtoken");
+const jwtSecret = process.env.JWT_SECRET || process.env.SECRET_KEY;
 
 const authenticateToken = (req, res, next) => {
     try {
+        if (!jwtSecret) {
+            return res.status(500).json({ error: "Server auth configuration missing" });
+        }
+
         const authHeader = req.headers.authorization;
         
         if (!authHeader) {
@@ -14,14 +19,12 @@ const authenticateToken = (req, res, next) => {
             ? authHeader.slice(7) 
             : authHeader;
 
-        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        const decoded = jwt.verify(token, jwtSecret);
         
         req.user = decoded;
         next();
     } catch (err) {
-        return res.status(403).json({ 
-            error: "Invalid token" 
-        });
+        return res.status(403).json({ error: "Invalid or expired token" });
     }
 };
 

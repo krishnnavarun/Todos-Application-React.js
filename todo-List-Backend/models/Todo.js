@@ -4,11 +4,13 @@ const todoSchema = new mongoose.Schema(
     {
         title: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         description: {
             type: String,
-            default: ""
+            default: "",
+            trim: true
         },
         priority: {
             type: String,
@@ -39,6 +41,9 @@ const todoSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+todoSchema.index({ userId: 1, isDeleted: 1, createdAt: -1 });
+todoSchema.index({ userId: 1, isDeleted: 1, deletedAt: -1 });
 
 const Todo = mongoose.model("todos", todoSchema);
 

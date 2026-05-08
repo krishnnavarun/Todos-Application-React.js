@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema(
         type:String,
         required:true,
         unique:true,
-        lowercase: true
+        lowercase: true,
+        trim: true
      },
      password:{
         type:String,
@@ -14,16 +15,23 @@ const userSchema = new mongoose.Schema(
      },
      name:{
         type:String,
-        required:true
+        required:true,
+        trim: true
      },
      role:{
         type:String,
         enum:["customer", "admin"],
         default:"customer"
+     },
+     profileImage:{
+        type:String,
+        default:null
      }
     },
     {timestamps:true}
 );
+
+userSchema.index({ email: 1 }, { unique: true });
 
 const User = mongoose.model("users", userSchema);
 
